@@ -11,7 +11,6 @@ const axiosInstance = axios.create({
   },
 });
 
-// 요청 인터셉터: 토큰 자동 첨부
 axiosInstance.interceptors.request.use(
   (config) => {
     const accessToken = localStorage.getItem("accessToken");
@@ -23,12 +22,11 @@ axiosInstance.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// 응답 인터셉터: 401 발생 시 토큰 리프레시 후 재시도
 axiosInstance.interceptors.response.use(
   (res) => res,
   async (error) => {
     const originalRequest = error.config;
-    console.log(originalRequest)
+    console.log(originalRequest);
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
@@ -39,11 +37,9 @@ axiosInstance.interceptors.response.use(
         const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
           res.data;
 
-        // localStorage 업데이트
         localStorage.setItem("accessToken", newAccessToken);
         localStorage.setItem("refreshToken", newRefreshToken);
 
-        // store 업데이트
         userStore.getState().setUser();
 
         originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
